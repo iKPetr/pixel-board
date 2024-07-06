@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пиксельная доска</title>
+    <style>
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(20, 20px);
+        }
+        .pixel {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div id="grid"></div>
+    <input type="color" id="colorPicker" value="#000000">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const grid = document.getElementById('grid');
+        const colorPicker = document.getElementById('colorPicker');
+
+        // Создание сетки
+        for (let i = 0; i < 400; i++) {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            pixel.addEventListener('click', () => {
+                const color = colorPicker.value;
+                pixel.style.backgroundColor = color;
+                const x = i % 20;
+                const y = Math.floor(i / 20);
+                socket.emit('pixelUpdate', { x, y, color });
+            });
+            grid.appendChild(pixel);
+        }
+
+        // Обновление пикселя при получении события от сервера
+        socket.on('pixelUpdate', ({ x, y, color }) => {
+            const index = y * 20 + x;
+            grid.children[index].style.backgroundColor = color;
+        });
+    </script>
+</body>
+</html>
